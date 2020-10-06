@@ -12,7 +12,8 @@ const connection = mysql.createConnection({
   database: "employeesDB"
 });
 
-connection.connect(function(err) {
+connection.connect((err) => {
   if (err) throw err;
+  console.log("connected as id " + connection.threadId + "\n");
   init();
 });
