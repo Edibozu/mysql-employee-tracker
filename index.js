@@ -48,8 +48,9 @@ function init() {
 }
 
 function viewAll() {
+  console.log("All employees displayed");
   connection.query(
-        `SELECT employee.first_name, employee.last_name, role.title, role.salary
+    `SELECT employee.first_name, employee.last_name, role.title, role.salary
         FROM employee
         INNER JOIN role
             ON employee.role_id = role.id
@@ -58,5 +59,31 @@ function viewAll() {
     (err, data) => {
       if (err) throw err;
       console.table(data);
-    });
+      init();
+    }
+  );
+}
+
+function viewEmpByDept() {
+    console.log("Employees displayed by their department");
+    connection.query("SELECT * FROM department", (err, data) => {
+        departmentArray = data.map(department => department.name)
+        inquirer.prompt([
+            {
+                name: "department",
+                type: "list",
+                message: "Which department would you like to view?",
+                choices: departmentArray
+            }
+        ]).then(({department}) => {
+            connection.query(
+                `SELECT first_name, last_name, title, salary, name FROM employee INNER JOIN role ON employee.role_id = role.id INNER JOIN department ON role.department_id = department.id WHEre name = "${department}";`,
+                (err, data) => {
+                    if(err) throw err;
+                    console.table(data);
+                    init();
+                }
+            )
+        })
+    })
 }
