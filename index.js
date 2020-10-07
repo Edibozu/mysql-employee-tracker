@@ -211,8 +211,7 @@ function addRole() {
       ])
       .then(({ deptInput, roleName, salary }) => {
         const departmentInput = data.find(
-          (departmentObject) => departmentObject.name === departmentInput
-        );
+          (departmentObject) => departmentObject.name === deptInput);
         console.log(departmentInput);
         connection.query(
           `INSERT into role SET ?`,
