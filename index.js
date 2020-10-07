@@ -28,34 +28,42 @@ function init() {
       choices: [
         "View All Employees",
         "View All Employees by Department",
+        "View Employees by Role",
+        "Add Department",
         "Add Employee",
-        "Remove Employee",
+        "Add New Role",
         "Update Employee Role",
         "Exit",
       ],
     })
     .then(({ selection }) => {
-        switch (selection) {
-            case "View All Employees":
-                return viewAll();
-                break;
-            case "View All Employees by Department":
-                return viewEmpByDept();
-                break;
-            case "Add Employee":
-                return addEmployee();
-                break;
-            case "Remove Employee":
-                return removeEmployee();
-                break;
-            case "Update Employee Role":
-                return updateRole();
-                break;
-            default:
-                console.log("Goodbye");
-                connection.end();
-        }
-    })
+      switch (selection) {
+        case "View All Employees":
+          return viewAll();
+          break;
+        case "View All Employees by Department":
+          return viewEmpByDept();
+          break;
+        case "View Employee by Role":
+          return viewEmpByRole();
+          break;
+        case "Add Department":
+          return addDepartment();
+          break;
+        case "Add Employee":
+          return addEmployee();
+          break;
+        case "Add New Role":
+          return newRole();
+          break;
+        case "Update Employee Role":
+          return updateRole();
+          break;
+        default:
+          console.log("Goodbye");
+          connection.end();
+      }
+    });
 }
 
 // function exit() {
@@ -103,6 +111,35 @@ function viewEmpByDept() {
   });
 }
 
+function viewEmpByRole (){
+    connection.query(
+        `SELECT * FROM role`, (err, data) => {
+            const roleArray = data.map(role => role.title)
+            inquirer.prompt([
+                {
+                    name: "viewRole",
+                    type: "list",
+                    message: "Which role would you like to view?",
+                    choices: roleArray
+                }
+            ]).then(({roleSearch})=>{
+                connection.query(
+                    `SELECT first_name, last_name,title, salary, name 
+                    FROM employee
+                    INNER JOIN role ON employee.role_id = role.id
+                    INNER JOIN department ON role.department_id = department.id
+                    WHERE title = "${roleSearch}";`,
+                    (err,data) =>{
+                        if(err) throw err
+                        console.table(data)
+                        init();
+                    }
+                ) 
+            })
+        }
+    )
+}
+
 function addEmployee() {
   connection.query(`SELECT * FROM role`, (err, data) => {
     const rolesArray = data.map((role) => role.title);
@@ -140,6 +177,51 @@ function addEmployee() {
           ],
           (err, data) => {
             if (err) throw err;
+            viewAll();
+            init();
+          }
+        );
+      });
+  });
+}
+
+function newRole() {
+  connection.query(`SELECT * FROM department`, (err, data) => {
+    const deptArray = data.map((department) => department.name);
+    inquirer
+      .prompt([
+        {
+          name: "departmentInput",
+          type: "list",
+          message: "To what department does this role belong?",
+          choices: deptArray,
+        },
+        {
+          name: "roleName",
+          type: "input",
+          message: "Please enter role name",
+        },
+        {
+          name: "salary",
+          type: "input",
+          message: "Please enter salary",
+        },
+      ])
+      .then(({ deptChoice, roleName, salary }) => {
+        const inputDepartment = data.find(
+          (departmentObject) => departmentObject.name === departmentInput
+        );
+        console.log(inputDepartment);
+        connection.query(
+          `INSERT into role SET ?`,
+          {
+            title: roleName,
+            salary: parseInt(salary),
+            department_id: inputDepartment.id,
+          },
+          (err, data) => {
+            if (err) throw err;
+            console.table(data);
             viewAll();
             init();
           }
