@@ -29,7 +29,6 @@ function init() {
         "View All Employees",
         "View All Employees by Department",
         "View Employees by Role",
-        "Add Department",
         "Add Employee",
         "Add New Role",
         "Update Employee Role",
@@ -44,17 +43,15 @@ function init() {
         case "View All Employees by Department":
           return viewEmpByDept();
           break;
-        case "View Employee by Role":
+        case "View Employees by Role":
           return viewEmpByRole();
           break;
-        case "Add Department":
-          return addDepartment();
-          break;
+
         case "Add Employee":
           return addEmployee();
           break;
         case "Add New Role":
-          return newRole();
+          return addRole();
           break;
         case "Update Employee Role":
           return updateRole();
@@ -111,33 +108,33 @@ function viewEmpByDept() {
   });
 }
 
-function viewEmpByRole (){
-    connection.query(
-        `SELECT * FROM role`, (err, data) => {
-            const roleArray = data.map(role => role.title)
-            inquirer.prompt([
-                {
-                    name: "viewRole",
-                    type: "list",
-                    message: "Which role would you like to view?",
-                    choices: roleArray
-                }
-            ]).then(({roleSearch})=>{
-                connection.query(
-                    `SELECT first_name, last_name,title, salary, name 
+function viewEmpByRole() {
+  connection.query(`SELECT * FROM role`, (err, data) => {
+    const roleArray = data.map((role) => role.title);
+    inquirer
+      .prompt([
+        {
+          name: "viewRole",
+          type: "list",
+          message: "Which role would you like to view?",
+          choices: roleArray,
+        },
+      ])
+      .then(({ viewRole }) => {
+        connection.query(
+          `SELECT first_name, last_name,title, salary, name 
                     FROM employee
                     INNER JOIN role ON employee.role_id = role.id
                     INNER JOIN department ON role.department_id = department.id
-                    WHERE title = "${roleSearch}";`,
-                    (err,data) =>{
-                        if(err) throw err
-                        console.table(data)
-                        init();
-                    }
-                ) 
-            })
-        }
-    )
+                    WHERE title = "${viewRole}";`,
+          (err, data) => {
+            if (err) throw err;
+            console.table(data);
+            init();
+          }
+        );
+      });
+  });
 }
 
 function addEmployee() {
@@ -185,7 +182,7 @@ function addEmployee() {
   });
 }
 
-function newRole() {
+function addRole() {
   connection.query(`SELECT * FROM department`, (err, data) => {
     const deptArray = data.map((department) => department.name);
     inquirer
@@ -199,29 +196,78 @@ function newRole() {
         {
           name: "roleName",
           type: "input",
-          message: "Please enter role name",
+          message: "Please enter role name: ",
         },
         {
           name: "salary",
           type: "input",
-          message: "Please enter salary",
+          message: "Please enter salary: ",
         },
       ])
       .then(({ deptChoice, roleName, salary }) => {
-        const inputDepartment = data.find(
+        const departmentInput = data.find(
           (departmentObject) => departmentObject.name === departmentInput
         );
-        console.log(inputDepartment);
+        console.log(departmentInput);
         connection.query(
           `INSERT into role SET ?`,
           {
             title: roleName,
             salary: parseInt(salary),
-            department_id: inputDepartment.id,
+            department_id: departmentInput.id,
           },
           (err, data) => {
             if (err) throw err;
             console.table(data);
+            viewAll();
+            init();
+          }
+        );
+      });
+  });
+}
+
+function updateRole() {
+  connection.query(`SELECT * FROM role`, (err, data) => {
+    const roleArray = data.map((role) => role.title);
+    inquirer
+      .prompt([
+        {
+          name: "firstName",
+          type: "input",
+          message: "Please enter employee first name: ",
+        },
+        {
+          name: "lastName",
+          type: "input",
+          message: "Please enter employee last name: ",
+        },
+        {
+          name: "role",
+          type: "list",
+          message: "Please enter new employee role: ",
+          choices: roleArray,
+        },
+      ])
+      .then(({ firstName, lastName, role }) => {
+        const selectedRole = data.find(
+          (roleObject) => roleObject.title === role
+        );
+        connection.query(
+          `UPDATE employee SET ? WHERE ? AND ? `,
+          [
+            {
+              role_id: selectedRole.id,
+            },
+            {
+              first_name: firstName,
+            },
+            {
+              last_name: lastName,
+            },
+          ],
+          (err, data) => {
+            if (err) throw err;
             viewAll();
             init();
           }
