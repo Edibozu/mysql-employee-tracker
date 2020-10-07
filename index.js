@@ -1,7 +1,9 @@
+// Dependencies required for this application.
 const mysql = require("mysql");
 const inquirer = require("inquirer");
 const { exit } = require("process");
 
+//How we connect MySQL to the localhost.
 const connection = mysql.createConnection({
   host: "localhost",
 
@@ -13,12 +15,14 @@ const connection = mysql.createConnection({
   database: "employeesDB",
 });
 
+// This will let us know if we made a successful connection.
 connection.connect((err) => {
   if (err) throw err;
   console.log("connected as id " + connection.threadId + "\n");
   init();
 });
 
+// The initial prompts when the application is started up. User selects action and the application goes from there.
 function init() {
   inquirer
     .prompt({
@@ -35,6 +39,7 @@ function init() {
         "Exit",
       ],
     })
+    //  Functions for all the selections made by the user.
     .then(({ selection }) => {
       switch (selection) {
         case "View All Employees":
@@ -46,7 +51,6 @@ function init() {
         case "View Employees by Role":
           return viewEmpByRole();
           break;
-
         case "Add Employee":
           return addEmployee();
           break;
@@ -63,10 +67,7 @@ function init() {
     });
 }
 
-// function exit() {
-//   connection.end();
-// }
-
+// This function will allow the user to view all employees currently listed alongwith their role and salary.
 function viewAll() {
   connection.query(
     `SELECT employee.first_name, employee.last_name, role.title, role.salary
@@ -83,6 +84,7 @@ function viewAll() {
   );
 }
 
+// This function allows the user to search for employees based on their department.
 function viewEmpByDept() {
   connection.query(`SELECT * FROM department`, (err, data) => {
     departmentArray = data.map((department) => department.name);
@@ -108,6 +110,7 @@ function viewEmpByDept() {
   });
 }
 
+// This function allows the user to view employees based on their roles within the company.
 function viewEmpByRole() {
   connection.query(`SELECT * FROM role`, (err, data) => {
     const roleArray = data.map((role) => role.title);
@@ -137,6 +140,7 @@ function viewEmpByRole() {
   });
 }
 
+// This function allows the user to add new employees to database.
 function addEmployee() {
   connection.query(`SELECT * FROM role`, (err, data) => {
     const rolesArray = data.map((role) => role.title);
@@ -182,6 +186,7 @@ function addEmployee() {
   });
 }
 
+// This function allows the user to add a new role to the database.
 function addRole() {
   connection.query(`SELECT * FROM department`, (err, data) => {
     const deptArray = data.map((department) => department.name);
@@ -227,6 +232,7 @@ function addRole() {
   });
 }
 
+// This function allows the user to update roles to existing employees.
 function updateRole() {
   connection.query(`SELECT * FROM role`, (err, data) => {
     const roleArray = data.map((role) => role.title);
