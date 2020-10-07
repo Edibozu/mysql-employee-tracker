@@ -48,5 +48,15 @@ function init() {
 }
 
 function viewAll() {
-
+  connection.query(
+        `SELECT employee.first_name, employee.last_name, role.title, role.salary
+        FROM employee
+        INNER JOIN role
+            ON employee.role_id = role.id
+        INNER JOIN department
+            ON role.department_id = department.id;`,
+    (err, data) => {
+      if (err) throw err;
+      console.table(data);
+    });
 }
