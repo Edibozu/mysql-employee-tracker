@@ -193,7 +193,7 @@ function addRole() {
     inquirer
       .prompt([
         {
-          name: "departmentInput",
+          name: "deptInput",
           type: "list",
           message: "To what department does this role belong?",
           choices: deptArray,
@@ -209,7 +209,7 @@ function addRole() {
           message: "Please enter salary: ",
         },
       ])
-      .then(({ deptChoice, roleName, salary }) => {
+      .then(({ deptInput, roleName, salary }) => {
         const departmentInput = data.find(
           (departmentObject) => departmentObject.name === departmentInput
         );
